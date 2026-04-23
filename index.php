@@ -13,13 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['name'] = $user['name'];
         $_SESSION['role'] = $user['role'];
         $pdo->prepare("INSERT INTO activity_log (user_id, action) VALUES (?,?)")->execute([$user['id'], 'Logged in']);
-        if ($user['role'] === 'owner') header("Location: portals/owner.php");
-        elseif ($user['role'] === 'mechanic') header("Location: portals/mechanic.php");
-        elseif ($user['role'] === 'admin') header("Location: portals/admin.php");
+        if ($user['role'] === 'owner') {
+            header("Location: portals/owner.php");
+        } elseif ($user['role'] === 'mechanic') {
+            header("Location: portals/mechanic.php");
+        } elseif ($user['role'] === 'admin') {
+            header("Location: portals/admin.php");
+        }
         exit;
-    } else {
-        $error = 'Invalid email or password.';
     }
+
+    $error = 'Invalid email or password.';
 }
 ?>
 <!DOCTYPE html>
@@ -27,45 +31,216 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartGarage — Login</title>
+<title>SmartGarage - Login</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f3460 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-.container{display:flex;width:100%;max-width:900px;min-height:520px;border-radius:24px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);}
-.left-panel{flex:1;background:linear-gradient(145deg,rgba(59,130,246,0.3),rgba(15,52,96,0.8));backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1);padding:50px 40px;display:flex;flex-direction:column;justify-content:center;color:#e2e8f0;}
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
-.brand-icon{width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-radius:14px;display:flex;align-items:center;justify-content:center;}
-.brand-icon i{font-size:26px;color:white;}
-.brand h1{font-size:28px;font-weight:700;}
-.left-panel p{font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:28px;}
-.feature{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13px;color:#cbd5e1;}
-.feature i{color:#3b82f6;font-size:16px;}
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+:root{
+    --bg:#e7ebf4;
+    --bg-soft:#f2f5fb;
+    --surface:#e8edf7;
+    --text:#24344f;
+    --muted:#667896;
+    --primary:#2f6dff;
+    --primary-light:#5a90ff;
+    --primary-dark:#2855d4;
+    --danger:#e65f75;
+    --danger-light:#ef8798;
+    --shadow-dark:#c5cee0;
+    --shadow-light:#ffffff;
+    --radius-md: 16px;
+    --radius-lg: 28px;
+}
+*{box-sizing:border-box;}
+body{
+    margin:0;
+    font-family:'Nunito',sans-serif;
+    color:var(--text);
+    background:
+        radial-gradient(circle at 15% 10%,#f6f8fd 0%,transparent 42%),
+        radial-gradient(circle at 85% 92%,#d3def5 0%,transparent 36%),
+        linear-gradient(160deg,#e6ebf4 0%,#dde4f1 100%);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+.container{
+    display:flex;
+    width:100%;
+    max-width:980px;
+    min-height:560px;
+    gap:20px;
+}
+.left-panel,.right-panel{
+    background:var(--surface);
+    border-radius:var(--radius-lg);
+    box-shadow:
+        16px 16px 40px var(--shadow-dark),
+        -16px -16px 40px var(--shadow-light),
+        inset 1px 1px 2px rgba(255,255,255,0.5);
+    border:1px solid rgba(255,255,255,0.8);
+}
+.left-panel{
+    flex:1;
+    padding:46px 38px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:22px;}
+.brand-icon{
+    width:64px;height:64px;border-radius:var(--radius-md);
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#2f6dff,#5f95ff);
+    box-shadow:12px 12px 24px rgba(47,109,255,0.3),-8px -8px 20px rgba(255,255,255,0.95);
+    border:1px solid rgba(255,255,255,0.5);
+}
+.brand-icon i{font-size:32px;color:#fff;}
+.brand h1{font-size:32px;font-weight:800;margin:0;background:linear-gradient(135deg, var(--text), #2f6dff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.left-panel p{margin:0 0 26px;font-size:14px;line-height:1.7;color:var(--muted);}
+.feature{display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:13px;font-weight:600;color:#3b4f70;transition:0.3s ease;}
+.feature:hover{transform:translateX(4px);color:var(--primary);}
+.feature i{color:var(--primary);font-size:16px;}
 .role-badges{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;}
-.role-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;display:flex;align-items:center;gap:5px;}
-.rb-owner{background:rgba(168,85,247,0.15);color:#c084fc;border-color:rgba(168,85,247,0.3);}
-.rb-mechanic{background:rgba(59,130,246,0.15);color:#60a5fa;border-color:rgba(59,130,246,0.3);}
-.rb-admin{background:rgba(239,68,68,0.15);color:#f87171;border-color:rgba(239,68,68,0.3);}
-.right-panel{flex:1;background:rgba(255,255,255,0.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);padding:50px 40px;display:flex;flex-direction:column;justify-content:center;}
-h2{font-size:24px;font-weight:700;color:#f1f5f9;margin-bottom:6px;}
-.subtitle{font-size:13px;color:#64748b;margin-bottom:28px;}
-.form-group{margin-bottom:18px;position:relative;}
-label{display:block;font-size:11px;font-weight:600;color:#94a3b8;margin-bottom:6px;letter-spacing:0.5px;text-transform:uppercase;}
+.role-badge{
+    padding:8px 14px;border-radius:999px;font-size:11px;font-weight:700;
+    display:flex;align-items:center;gap:6px;color:#405375;
+    background:var(--bg-soft);
+    box-shadow:4px 4px 10px rgba(0,0,0,0.08),-4px -4px 10px rgba(255,255,255,0.95);
+    border:1px solid rgba(255,255,255,0.6);
+    transition:0.3s ease;
+}
+.role-badge:hover{transform:translateY(-2px);box-shadow:6px 6px 16px rgba(47,109,255,0.15),-6px -6px 16px rgba(255,255,255,0.95);}
+.right-panel{
+    flex:1;
+    padding:46px 38px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+h2{font-size:32px;font-weight:800;margin:0;color:var(--text);}
+.subtitle{margin:6px 0 24px;font-size:14px;color:var(--muted);line-height:1.6;}
+.form-group{margin-bottom:18px;}
+label{
+    display:block;
+    margin-bottom:8px;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:#6d7e9c;
+    font-weight:700;
+}
 .input-wrap{position:relative;}
-.input-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#475569;font-size:16px;}
-input{width:100%;padding:12px 16px 12px 42px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:#f1f5f9;font-size:14px;font-family:'Inter',sans-serif;transition:all 0.3s;outline:none;}
-input:focus{border-color:#3b82f6;background:rgba(59,130,246,0.08);box-shadow:0 0 0 3px rgba(59,130,246,0.15);}
-input::placeholder{color:#475569;}
-.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.3s;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;}
-.btn-login:hover{background:linear-gradient(135deg,#2563eb,#1d4ed8);transform:translateY(-1px);box-shadow:0 8px 20px rgba(59,130,246,0.4);}
-.error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fca5a5;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
-.divider{text-align:center;color:#475569;font-size:12px;margin:20px 0;position:relative;}
-.divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:rgba(255,255,255,0.08);}
-.divider::before{left:0;}.divider::after{right:0;}
-.signup-link{text-align:center;font-size:13px;color:#64748b;}
-.signup-link a{color:#3b82f6;text-decoration:none;font-weight:600;}
-.signup-link a:hover{text-decoration:underline;}
+.input-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#8a96b3;font-size:16px;transition:0.3s ease;}
+input{
+    width:100%;
+    padding:13px 14px 13px 44px;
+    border:1.5px solid rgba(255,255,255,0.8);
+    border-radius:var(--radius-md);
+    background:var(--bg-soft);
+    color:var(--text);
+    font-size:14px;
+    font-family:'Nunito',sans-serif;
+    font-weight:600;
+    box-shadow:6px 6px 14px rgba(0,0,0,0.06),inset 4px 4px 8px rgba(255,255,255,0.9),-2px -2px 6px rgba(255,255,255,0.5);
+    outline:none;
+    transition:0.3s ease;
+}
+input:hover{
+    border-color:#a8c5ff;
+    box-shadow:6px 6px 14px rgba(0,0,0,0.08),inset 4px 4px 8px rgba(255,255,255,0.9),-2px -2px 6px rgba(255,255,255,0.5);
+}
+input:focus{
+    border-color:#2f6dff;
+    box-shadow:6px 6px 14px rgba(47,109,255,0.15),inset 4px 4px 8px rgba(255,255,255,0.9),0 0 0 4px rgba(47,109,255,0.15);
+}
+input:focus + i,
+input:focus ~ i{
+    color:var(--primary);
+    transform:translateY(-50%) scale(1.1);
+}
+input::placeholder{color:#95a4bf;font-weight:500;}
+.btn-login{
+    width:100%;
+    margin-top:12px;
+    padding:13px 16px;
+    border:none;
+    border-radius:var(--radius-md);
+    color:#fff;
+    font-weight:700;
+    font-size:15px;
+    font-family:'Nunito',sans-serif;
+    background:linear-gradient(145deg,var(--primary),var(--primary-light));
+    box-shadow:10px 10px 24px rgba(47,109,255,0.28),-8px -8px 20px rgba(255,255,255,0.9);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;
+    transition:0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position:relative;
+    overflow:hidden;
+}
+.btn-login:before{
+    content:'';
+    position:absolute;
+    top:0;
+    left:-100%;
+    width:100%;
+    height:100%;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition:left 0.5s ease;
+}
+.btn-login:hover{
+    transform:translateY(-3px);
+    box-shadow:12px 12px 28px rgba(47,109,255,0.32),-10px -10px 24px rgba(255,255,255,0.92);
+}
+.btn-login:hover:before{
+    left:100%;
+}
+.btn-login:active{
+    transform:translateY(-1px);
+    box-shadow:6px 6px 14px rgba(47,109,255,0.2),-4px -4px 12px rgba(255,255,255,0.88);
+}
+.error{
+    margin-bottom:20px;
+    padding:13px 16px;
+    border-radius:var(--radius-md);
+    color:#8d2d3f;
+    font-size:13px;
+    font-weight:700;
+    border:1.5px solid rgba(230,95,117,0.4);
+    background:#f7dfe4;
+    box-shadow:8px 8px 16px rgba(230,95,117,0.15),inset 2px 2px 4px rgba(255,255,255,0.8);
+    display:flex;align-items:center;gap:10px;
+    animation:slideIn 0.3s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+.divider{
+    margin:22px 0 20px;
+    text-align:center;
+    color:#8a99b4;
+    font-size:12px;
+    font-weight:700;
+    position:relative;
+}
+.divider::before,.divider::after{
+    content:'';
+    position:absolute;
+    top:50%;
+    width:42%;
+    height:1.5px;
+    background:linear-gradient(90deg, transparent, #c5cfe0, transparent);
+}
+.divider::before{left:0;}
+.divider::after{right:0;}
+.signup-link{text-align:center;color:var(--muted);font-size:13px;font-weight:600;}
+.signup-link a{color:var(--primary);font-weight:800;text-decoration:none;transition:0.2s ease;}
+.signup-link a:hover{text-decoration:underline;color:var(--primary-dark);}
+@media (max-width:900px){
+    .container{flex-direction:column;max-width:620px;}
+    .left-panel,.right-panel{padding:34px 28px;}
+}
 </style>
 </head>
 <body>
@@ -75,22 +250,22 @@ input::placeholder{color:#475569;}
             <div class="brand-icon"><i class="bi bi-car-front-fill"></i></div>
             <h1>SmartGarage</h1>
         </div>
-        <p>Professional car service management platform for owners, mechanics, and administrators.</p>
+        <p>Professional vehicle service management for owners, mechanics, and administrators.</p>
         <div class="feature"><i class="bi bi-clock-history"></i> Track full service history</div>
         <div class="feature"><i class="bi bi-bell-fill"></i> Auto service reminders</div>
         <div class="feature"><i class="bi bi-arrow-repeat"></i> Real-time job status updates</div>
         <div class="feature"><i class="bi bi-bar-chart-fill"></i> Analytics and CSV export</div>
         <div class="role-badges">
-            <span class="role-badge rb-owner"><i class="bi bi-person-fill"></i> OWNER</span>
-            <span class="role-badge rb-mechanic"><i class="bi bi-wrench-adjustable"></i> MECHANIC</span>
-            <span class="role-badge rb-admin"><i class="bi bi-shield-fill"></i> ADMIN</span>
+            <span class="role-badge"><i class="bi bi-person-fill"></i> OWNER</span>
+            <span class="role-badge"><i class="bi bi-wrench-adjustable"></i> MECHANIC</span>
+            <span class="role-badge"><i class="bi bi-shield-fill"></i> ADMIN</span>
         </div>
     </div>
     <div class="right-panel">
-        <h2>Welcome back</h2>
-        <p class="subtitle">Sign in to your SmartGarage account</p>
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to continue to your dashboard</p>
         <?php if ($error): ?>
-        <div class="error"><i class="bi bi-exclamation-triangle-fill"></i> <?php echo $error; ?></div>
+        <div class="error"><i class="bi bi-exclamation-triangle-fill"></i> <?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
         <form method="POST">
             <div class="form-group">
@@ -113,12 +288,10 @@ input::placeholder{color:#475569;}
         </form>
         <div class="divider">or</div>
         <div class="signup-link">
-            Don't have an account? <a href="signup.php">Create one here</a>
+            Do not have an account? <a href="signup.php">Create one here</a>
         </div>
     </div>
 </div>
 </body>
 </html>
-
-
 
